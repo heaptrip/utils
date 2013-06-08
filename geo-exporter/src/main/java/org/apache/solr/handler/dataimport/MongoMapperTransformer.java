@@ -7,6 +7,8 @@ public class MongoMapperTransformer extends Transformer {
 	@Override
 	public Object transformRow(Map<String, Object> row, Context context) {
 
+		//TODO test
+		
 		for (Map<String, String> map : context.getAllEntityFields()) {
 			String mongoFieldName = map.get(MONGO_FIELD);
 			if (mongoFieldName == null)
