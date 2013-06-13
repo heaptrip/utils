@@ -10,7 +10,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,12 +40,17 @@ public class MongoDataSource extends DataSource<Iterator<Map<String, Object>>> {
 
 	private DBCursor mongoCursor;
 
+	private List<String> mongoFields = new ArrayList<String>();
+
 	@Override
 	public void init(Context context, Properties initProps) {
 		String databaseName = initProps.getProperty(DATABASE);
 		String dbUrls = initProps.getProperty(URLS, "localhost:27017");
 		String username = initProps.getProperty(USERNAME);
 		String password = initProps.getProperty(PASSWORD);
+		for (Map<String, String> map : context.getAllEntityFields()) {
+			mongoFields.add(map.get(MongoMapperTransformer.MONGO_FIELD));
+		}
 
 		if (databaseName == null) {
 			throw new DataImportHandlerException(SEVERE, "Database must be supplied");
@@ -127,19 +131,18 @@ public class MongoDataSource extends DataSource<Iterator<Map<String, Object>>> {
 		}
 
 		private Map<String, Object> getARow() {
-			DBObject mongoObject = getMongoCursor().next();
-
 			Map<String, Object> result = new HashMap<String, Object>();
-			Set<String> keys = mongoObject.keySet();
-			Iterator<String> iterator = keys.iterator();
-
-			while (iterator.hasNext()) {
-				String key = iterator.next();
-				Object innerObject = mongoObject.get(key);
-
+			DBObject mongoObject = getMongoCursor().next();
+			for (String key : mongoFields) {
+				String[] fields = key.trim().split("\\.");
+				Object innerObject = mongoObject.get(fields[0]);
+				if (fields.length > 1) {
+					for (int i = 1; i < fields.length; i++) {
+						innerObject = ((DBObject) innerObject).get(fields[i]);
+					}
+				}
 				result.put(key, innerObject);
 			}
-
 			return result;
 		}
 
