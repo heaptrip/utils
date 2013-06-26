@@ -4,6 +4,7 @@
 	<groupId>com.heaptrip.geoexporter</groupId>
 	<artifactId>geo-exporter</artifactId>
 	<version>4.1.0</version>
+	
 
 	<dependencies>
 		<dependency>
