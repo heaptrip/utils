@@ -210,7 +210,7 @@ public class Database {
 			}
 			
 			city = new ExtendedRegion();
-			city.setParent(region.getId());
+			city.setParent(country.getId());
 			city.setPath(new MultiLangText(country.getName().get("ru") + ", " + result.getString("city_name_ru"), 
 					country.getName().get("en") + ", " + result.getString("city_name_en")));
 			city.setAncestors(ancestor);
