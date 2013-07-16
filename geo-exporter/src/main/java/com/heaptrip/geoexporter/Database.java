@@ -111,7 +111,9 @@ public class Database {
 				
 		statement = mysqlConnect.prepareStatement("SELECT r.id, r.naselenie, r.strana_id, r.nazvanie_1 AS region_name_ru, r.nazvanie_2 AS region_name_en " +
 													"FROM region r " +
-													"WHERE r.uroven < 2 AND ((r.strana_id IN (25, 107, 58, 152, 167, 78, 170)) OR (r.strana_id = 1 AND r.tip <> 1))");
+													"WHERE r.uroven < 2 AND " +
+													"((r.strana_id IN (25, 107, 58, 152, 78, 170)) OR (r.strana_id = 1 AND r.tip <> 1)) AND " +
+													"r.id NOT IN (1790, 1791, 1792, 1825, 1826)");
 		result = statement.executeQuery();
 		
 		while (result.next()) {
@@ -154,7 +156,8 @@ public class Database {
 		
 		statement = mysqlConnect.prepareStatement("SELECT g.id, g.strana_id, g.region1_id, g.naselenie, g.nazvanie_1 AS city_name_ru, g.nazvanie_2 AS city_name_en " + 
 													"FROM gorod g " + 
-													"WHERE g.strana_id IN (1, 25, 107, 58, 152, 167, 78, 170)");
+													"WHERE g.strana_id IN (1, 25, 107, 58, 152, 78, 170) AND " +
+													"g.region1_id NOT IN (1790, 1791, 1792, 1825, 1826)");
 		result = statement.executeQuery();
 		
 		while (result.next()) {
@@ -182,8 +185,8 @@ public class Database {
 			
 			city = new ExtendedRegion();
 			city.setParent(region.getId());
-			city.setPath(new MultiLangText(country.getName().get("ru") + ", " + region.getName().get("ru") + ", " + result.getString("city_name_ru"), 
-					country.getName().get("en") + ", " + region.getName().get("en") + ", " + result.getString("city_name_en")));
+			city.setPath(new MultiLangText(result.getString("city_name_ru") + ", " + region.getName().get("ru") + ", " + country.getName().get("ru"), 
+											result.getString("city_name_en") + ", " + region.getName().get("en") + ", " + country.getName().get("en")));
 			city.setAncestors(ancestors);
 			city.setName(new MultiLangText(result.getString("city_name_ru"), result.getString("city_name_en")));
 			city.setGeoWNId(result.getString("id"));
@@ -196,7 +199,8 @@ public class Database {
 				
 		statement = mysqlConnect.prepareStatement("SELECT g.id, g.strana_id, g.naselenie, g.nazvanie_1 AS city_name_ru, g.nazvanie_2 AS city_name_en " + 
 													"FROM gorod g " + 
-													"WHERE g.strana_id NOT IN (1, 25, 107, 58, 152, 167, 78, 170)");
+													"WHERE g.strana_id NOT IN (1, 25, 107, 58, 152, 78, 170) OR " +
+													"g.region1_id IN (1790, 1791, 1792, 1825, 1826)");
 		result = statement.executeQuery();
 		
 		while (result.next()) {
@@ -211,8 +215,8 @@ public class Database {
 			
 			city = new ExtendedRegion();
 			city.setParent(country.getId());
-			city.setPath(new MultiLangText(country.getName().get("ru") + ", " + result.getString("city_name_ru"), 
-					country.getName().get("en") + ", " + result.getString("city_name_en")));
+			city.setPath(new MultiLangText(result.getString("city_name_ru") + ", " + country.getName().get("ru"), 
+											result.getString("city_name_en") + ", " + country.getName().get("en")));
 			city.setAncestors(ancestor);
 			city.setName(new MultiLangText(result.getString("city_name_ru"), result.getString("city_name_en")));
 			city.setGeoWNId(result.getString("id"));
