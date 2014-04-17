@@ -1,25 +1,45 @@
 package org.apache.solr.handler.dataimport;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.Map;
 
 public class MongoMapperTransformer extends Transformer {
 
-	@Override
-	public Object transformRow(Map<String, Object> row, Context context) {
+    public static final String MONGO_FIELD = "mongoField";
 
-		for (Map<String, String> map : context.getAllEntityFields()) {
-			String mongoFieldName = map.get(MONGO_FIELD);
-			if (mongoFieldName == null)
-				continue;
+    public static final String NONE_FIELD = "none";
 
-			String columnFieldName = map.get(DataImporter.COLUMN);
+    @Override
+    public Object transformRow(Map<String, Object> row, Context context) {
 
-			row.put(columnFieldName, row.get(mongoFieldName));
+        for (Map<String, String> map : context.getAllEntityFields()) {
+            String mongoFieldName = map.get(MONGO_FIELD);
 
-		}
+            if (StringUtils.isEmpty(mongoFieldName)) {
+                continue;
+            }
 
-		return row;
-	}
+            String columnFieldName = map.get(DataImporter.COLUMN);
 
-	public static final String MONGO_FIELD = "mongoField";
+            if (StringUtils.isEmpty(columnFieldName) || columnFieldName.equalsIgnoreCase(NONE_FIELD)) {
+                continue;
+            }
+
+            // process [mongoFieldName] in solr columnFieldName
+            if (columnFieldName.indexOf("[") > 0 && columnFieldName.indexOf("]") > 0) {
+                String fieldName = columnFieldName.substring(columnFieldName.indexOf("[") + 1, columnFieldName.indexOf("]"));
+                if (StringUtils.isNotEmpty(fieldName)) {
+                    Object fieldValue = row.get(fieldName);
+                    if (fieldValue != null && fieldValue instanceof String && StringUtils.isNotEmpty((String) fieldValue)) {
+                        columnFieldName = columnFieldName.substring(0, columnFieldName.indexOf("[")) + fieldValue;
+                    }
+                }
+            }
+
+            row.put(columnFieldName, row.get(mongoFieldName));
+        }
+
+        return row;
+    }
 }
